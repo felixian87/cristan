@@ -1,76 +1,79 @@
-document.getElementById('preventivatore-form').addEventListener('submit', async function(e) {
+// Configurazione API Hugging Face (Aggiornata per Stable Diffusion XL)
+const API_TOKEN = "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";
+const MODEL_URL = "https://router.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
+
+// Riferimenti agli elementi del form esistenti
+const form = document.getElementById('preventivatore-form');
+const loader = document.getElementById('loader');
+const resultContainer = document.getElementById('result-container');
+const resultImage = document.getElementById('result-image');
+
+// Funzione principale che comunica con l'IA
+async function query(data) {
+    const response = await fetch(MODEL_URL, {
+        headers: { 
+            "Authorization": `Bearer ${API_TOKEN}`,
+            "Content-Type": "application/json"
+        },
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+
+    // Gestione dell'avvio del server (errore 503)
+    if (response.status === 503) {
+        throw new Error("Il server IA si sta avviando... riprova tra circa 20 secondi.");
+    }
+
+    if (!response.ok) {
+        throw new Error("Si è verificato un errore nella generazione dell'immagine (Stato: " + response.status + ")");
+    }
+
+    const result = await response.blob();
+    return result;
+}
+
+// Gestione dell'invio del form
+form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const formData = {
-        tipo: document.getElementById('tipo').value,
-        materiale: document.getElementById('materiale').value,
-        colore: document.getElementById('colore').value,
-        dettagli: document.getElementById('dettagli').value
-    };
+    // Raccogliamo i dati dal form per costruire un prompt dettagliato
+    const tipo = document.getElementById('tipo').value;
+    const materiale = document.getElementById('materiale').value;
+    const colore = document.getElementById('colore').value;
+    const dettagli = document.getElementById('dettagli').value;
 
-    const loader = document.getElementById('loader');
-    const resultContainer = document.getElementById('result-container');
-    const resultImage = document.getElementById('result-image');
+    // Prompt ottimizzato per la fotografia di interni artigianale
+    const textPrompt = `Professional photography, high-end ${tipo} made of ${materiale} in ${colore} color, ${dettagli}, luxury interior setting, studio lighting, highly detailed texture, 4k, cinematic quality.`;
 
-    loader.style.display = 'block';
-    resultContainer.style.display = 'none';
+    // Stato di caricamento UI
+    const submitBtn = form.querySelector('button');
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Generazione in corso...";
+    loader.style.display = "block";
+    resultContainer.style.display = "none";
 
     try {
-        // Prompt ottimizzato per Nano Banana 2 (Gemini 3.1 Flash Image)
-        const prompt = `FOTOGRAFIA PROFESSIONALE 4K: Un ${formData.tipo} di design artigianale realizzato in ${formData.materiale} colore ${formData.colore}. 
-        Dettagli extra: ${formData.dettagli}. 
-        Ambientazione di lusso, illuminazione da studio fotografico, texture dei materiali ultra-dettagliata, stile Tappezzeria Cristian Pizzarelli.`;
-
-        // CHIAVE API FORNITA
-        const API_KEY = 'AIzaSyD54-QrjvP6DZ0C0jWueDjxm8GW6mLzA-0';
+        // Chiamata all'IA tramite Hugging Face
+        const blob = await query({ "inputs": textPrompt });
         
-        // Endpoint ufficiale per la generazione di contenuti multimediali (Nano Banana 2)
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${API_KEY}`;
-
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: prompt }]
-                }],
-                generationConfig: {
-                    temperature: 0.9,
-                    topP: 1.0,
-                    candidateCount: 1
-                }
-            })
-        });
-
-        if (!response.ok) throw new Error(`Status: ${response.status}`);
-
-        const data = await response.json();
+        // Converte il blob in un URL per l'immagine
+        const imgUrl = URL.createObjectURL(blob);
         
-        // Estrazione immagine (Nano Banana 2 restituisce tipicamente dati base64 o blob inline)
-        const imagePart = data.candidates[0].content.parts.find(p => p.inlineData || p.fileData);
+        // Visualizza il risultato
+        resultImage.src = imgUrl;
         
-        if (imagePart && imagePart.inlineData) {
-            resultImage.src = `data:image/png;base64,${imagePart.inlineData.data}`;
-        } else {
-            // Se l'API restituisce un testo o un errore di configurazione, usiamo il motore di rendering Nano Banana 2
-            console.log("Generazione in corso tramite engine Nano Banana...");
-            resultImage.src = `https://nanobananaapi.ai/v1/generate?prompt=${encodeURIComponent(prompt)}&key=${API_KEY}&seed=${Math.random()}`;
-        }
-
         resultImage.onload = () => {
-            loader.style.display = 'none';
-            resultContainer.style.display = 'block';
+            loader.style.display = "none";
+            resultContainer.style.display = "block";
             resultContainer.scrollIntoView({ behavior: 'smooth' });
         };
-
-    } catch (error) {
-        console.error("Errore Nano Banana 2:", error);
-        // Fallback visivo se la chiave ha restrizioni o l'endpoint è occupato
-        resultImage.src = `https://nanobananaapi.ai/v1/generate?prompt=${encodeURIComponent(formData.tipo + ' ' + formData.colore)}&quality=high`;
         
-        setTimeout(() => {
-            loader.style.display = 'none';
-            resultContainer.style.display = 'block';
-        }, 3000);
+    } catch (error) {
+        alert("Errore Hugging Face: " + error.message);
+    } finally {
+        // Ripristina il pulsante
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Genera Anteprima Progetto";
+        loader.style.display = "none";
     }
 });
