@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Preventivatore | Cristian Pizzarelli</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        .preventivatore-section { padding: 120px 0 100px; background: var(--light-bg); min-height: 80vh; }
+        .config-card { background: var(--white); padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto; }
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; margin-bottom: 10px; font-weight: 600; color: var(--primary-color); }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-family: inherit; }
+        .btn-generate { width: 100%; padding: 15px; font-size: 1.1rem; cursor: pointer; border: none; }
+        
+        #result-container { margin-top: 50px; text-align: center; display: none; }
+        #result-image { max-width: 100%; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-top: 20px; }
+        .loader { display: none; margin: 30px auto; border: 5px solid #f3f3f3; border-top: 5px solid var(--accent-color); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .json-debug { background: #222; color: #0f0; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 0.8rem; margin-top: 30px; display: none; text-align: left; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">Cristian <span>Pizzarelli</span></a>
+            <ul class="nav-links">
+                <li><a href="index.html#home">Home</a></li>
+                <li><a href="index.html#servizi">Servizi</a></li>
+                <li><a href="preventivatore.html">Il Preventivatore</a></li>
+                <li><a href="index.html#chi-siamo">Chi Siamo</a></li>
+                <li><a href="index.html#lavori">Lavori</a></li>
+                <li><a href="index.html#contatti">Contatti</a></li>
+            </ul>
+            <div class="menu-toggle" id="mobile-menu">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </nav>
+
+    <section class="preventivatore-section">
+        <div class="container">
+            <h2 class="section-title">Il Preventivatore</h2>
+            <p style="text-align: center; margin-bottom: 40px;">Configura il tuo progetto e lascia che l'Intelligenza Artificiale di <strong>Nano Banana 2</strong> crei una bozza visiva per te.</p>
+            
+            <div class="config-card">
+                <form id="preventivatore-form">
+                    <div class="form-group">
+                        <label>Tipo di Progetto</label>
+                        <select class="form-control" id="tipo" required>
+                            <option value="divano">Divano</option>
+                            <option value="poltrona">Poltrona</option>
+                            <option value="testata_letto">Testata Letto</option>
+                            <option value="interno_auto">Interno Auto</option>
+                            <option value="cuscineria_nautica">Cuscineria Nautica</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Materiale Desiderato</label>
+                        <select class="form-control" id="materiale" required>
+                            <option value="velluto">Velluto Pregiato</option>
+                            <option value="pelle">Pelle Naturale</option>
+                            <option value="lino">Lino Naturale</option>
+                            <option value="microfibra">Microfibra Antimacchia</option>
+                            <option value="ecopelle">Ecopelle Tecnica</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Colore</label>
+                        <select class="form-control" id="colore" required>
+                            <option value="blu_notte">Blu Notte</option>
+                            <option value="verde_bosco">Verde Bosco</option>
+                            <option value="grigio_antracite">Grigio Antracite</option>
+                            <option value="beige_sabbia">Beige Sabbia</option>
+                            <option value="rosso_rubino">Rosso Rubino</option>
+                            <option value="cuoio">Cuoio Classico</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dettagli Aggiuntivi</label>
+                        <textarea class="form-control" id="dettagli" rows="3" placeholder="Es: lavorazione capitonné, doppie cuciture a contrasto..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-generate">Genera Anteprima Progetto</button>
+                </form>
+
+                <div class="loader" id="loader"></div>
+
+                <div id="result-container">
+                    <h3>La tua anteprima personalizzata</h3>
+                    <p>Elaborata da Nano Banana 2</p>
+                    <img id="result-image" src="" alt="Anteprima Progetto">
+                    <div style="margin-top: 30px;">
+                        <a href="index.html#contatti" class="btn btn-primary">Richiedi Preventivo Reale</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Cristian Pizzarelli Tappezzeria Artigiana. Tutti i diritti riservati.</p>
+        </div>
+    </footer>
+
+    <script src="preventivatore.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
